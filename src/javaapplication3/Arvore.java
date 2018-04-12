@@ -98,7 +98,7 @@ public class Arvore {
             // subtraí quantidade de peças que precisam ser colocadas no tabuleiro
             int pecasPorColocar = no.getPecasPorColocar() - 1;
             
-            int profundidade = no.getProfundidade() - 1;
+            int profundidade = no.getProfundidade() + 1;
             
             int jogador = no.getJogador() == MAX_TURN ? MIN_TURN : MAX_TURN;
             
@@ -245,7 +245,7 @@ public class Arvore {
                 
                 int jogador = no.getJogador() == MAX_TURN ? MIN_TURN : MAX_TURN;
                 int pecasPorColocar = no.getPecasPorColocar();
-                int profundidade = no.getProfundidade() - 1;
+                int profundidade = no.getProfundidade() + 1;
 
                 // Se jogador forma linha com 3 peças então pode remover peça
                 // Nesse caso colocar peça e remover peça são consideradas apenas uma jogada
@@ -362,7 +362,7 @@ public class Arvore {
             
             int jogador = no.getJogador() == MAX_TURN ? MIN_TURN : MAX_TURN;
             int pecasPorColocar = no.getPecasPorColocar();
-            int profundidade = no.getProfundidade() - 1;
+            int profundidade = no.getProfundidade() + 1;
 
             
             // Cria nodo para jogada de mover peça

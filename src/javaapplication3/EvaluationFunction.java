@@ -52,15 +52,15 @@ public final class EvaluationFunction {
     
     
     public int phase1(int jogadorQueFechouLinha) {
-        return evaluate(0, 0, 0, 0, 2, 5, 0, jogadorQueFechouLinha);
+        return evaluate(0, 0, 0, 0, 2, 0, 0, jogadorQueFechouLinha);
     }    
     
     public int phase2(int jogadorQueFechouLinha) {
-        return evaluate(0, 0, 0, 0, 2, 5, 0, jogadorQueFechouLinha);
+        return evaluate(0, 0, 0, 0, 2, 0, 0, jogadorQueFechouLinha);
     }    
     
     public int phase3(int jogadorQueFechouLinha) {
-        return evaluate(0, 0, 0, 0, 2, 5, 0, jogadorQueFechouLinha);
+        return evaluate(0, 0, 0, 0, 2, 0, 0, jogadorQueFechouLinha);
     }
     
     public int vitoria(int jogador){
