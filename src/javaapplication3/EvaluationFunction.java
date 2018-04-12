@@ -52,15 +52,15 @@ public final class EvaluationFunction {
     
     
     public int phase1(int jogadorQueFechouLinha) {
-        return evaluate(0, 0, 0, 0, 2, 0, 0, jogadorQueFechouLinha);
+        return evaluate(16, 0, 0, 0, 10, 1, 0, jogadorQueFechouLinha);
     }    
     
     public int phase2(int jogadorQueFechouLinha) {
-        return evaluate(0, 0, 0, 0, 2, 0, 0, jogadorQueFechouLinha);
+        return evaluate(14, 43, 10, 11, 0, 0, 8, jogadorQueFechouLinha);
     }    
     
     public int phase3(int jogadorQueFechouLinha) {
-        return evaluate(0, 0, 0, 0, 2, 0, 0, jogadorQueFechouLinha);
+        return evaluate(18, 26, 1, 9, 10, 7, 0, jogadorQueFechouLinha);
     }
     
     public int vitoria(int jogador){
@@ -91,6 +91,11 @@ public final class EvaluationFunction {
         if(w7 !=0){
             notaAvaliacao += w7 * (getQuantidadeLCincoPecas(Arvore.MAX_TURN) - getQuantidadeLCincoPecas(Arvore.MIN_TURN));
         }
+        
+//        
+//        if (notaAvaliacao >= 2 || notaAvaliacao <= -2){
+//            System.out.println(notaAvaliacao);
+//        }
         
         
         return notaAvaliacao;
