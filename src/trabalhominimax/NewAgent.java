@@ -1,101 +1,104 @@
-package javaapplication3;
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package trabalhominimax;
 
 import NineMensMorris.GameInfo;
+import NineMensMorris.PlayerAgent;
 import java.util.List;
 
+/**
+ *
+ * @author Gustavo
+ */
+public class NewAgent implements PlayerAgent {
 
-
-public final class EvaluationFunction {
-    
-    private int[][] tabuleiro;
-    private GameInfo info;
-    
     private static int COLUNA_ZERO = 0;
     private static int COLUNA_SETE = 7;
     private static int LINHA_ZERO = 0;
     private static int MAIS_UMA_CASA = 1;
     private static int MENOS_UMA_CASA = -1;
-    
+    private static final int MAX_TURN = 1; 
+    private static final int MIN_TURN = 2;
 
-    
-    
+    @Override
+    public String setPiece(GameInfo gi) {
+        MinimaxTree arvore = new MinimaxTree(3, MinimaxTree.SET_ACTION, gi) {
+            @Override
+            public int scoreGameState(MinimaxTree.Node node) {
+                return evaluate(0, 0, 0, 0, 2, 8, gi);
+            }
+        };
+        
+        return arvore.executeMinimax();
 
+    }
 
-    public EvaluationFunction(GameInfo info, int[][] tabuleiro) {
-        this.tabuleiro = tabuleiro;
-        this.info = info;
+    @Override
+    public String movePiece(GameInfo gi) {
+        MinimaxTree arvore = new MinimaxTree(4, MinimaxTree.MOVE_ACTION, gi) {
+            @Override
+            public int scoreGameState(MinimaxTree.Node node) {
+                return evaluate(0, 0, 0, 0, 2, 8, gi);
+            }
+        };
+        
+        return arvore.executeMinimax();
+    }
+
+    @Override
+    public String removePiece(GameInfo gi) {
+        MinimaxTree arvore = new MinimaxTree(4, MinimaxTree.REMOVE_ACTION, gi) {
+            @Override
+            public int scoreGameState(MinimaxTree.Node node) {
+                return evaluate(0, 0, 0, 0, 2, 8, gi);
+            }
+        };
+        
+        return arvore.executeMinimax();
     }
     
     
-
     
     
-    public int[][] getTabuleiro() {
-        return tabuleiro;
-    }
-
-    public void setTabuleiro(int[][] spots) {
-        this.tabuleiro = spots;
-    }
-
-    public GameInfo getInfo() {
-        return info;
-    }
-
-    public void setInfo(GameInfo info) {
-        this.info = info;
-    }
-    
-
-    
-
     
     
-    public int phase1(int jogadorQueFechouLinha) {
-        return evaluate(16, 0, 0, 0, 10, 1, 0, jogadorQueFechouLinha);
-    }    
     
-    public int phase2(int jogadorQueFechouLinha) {
-        return evaluate(14, 43, 10, 11, 0, 0, 8, jogadorQueFechouLinha);
-    }    
-    
-    public int phase3(int jogadorQueFechouLinha) {
-        return evaluate(18, 26, 1, 9, 10, 7, 0, jogadorQueFechouLinha);
-    }
-    
-    public int vitoria(int jogador){
-        return jogador == Arvore.MAX_TURN ? 5000 : -5000;
-    }
-    
-    private int evaluate(int w1, int w2, int w3, int w4, int w5, int w6, int w7, int jogadorQueFechouLinha) {        
+    private int evaluate(int w1, int w2, int w3, int w4, int w5, int w6, GameInfo gi) {        
         
         int notaAvaliacao = 0;
+        
+        //Retorna total de linhas fechadas pelo jogador de vantagem
         if(w1 !=0){
-            notaAvaliacao += w1 * (jogadorQueFechouLinha);
-        }
-        if(w2 !=0){
-            notaAvaliacao += w2 * (getTotalLinhasFechadas( Arvore.MAX_TURN) - getTotalLinhasFechadas(Arvore.MIN_TURN));
-        }
-        if(w3 !=0){
-            notaAvaliacao += w3 * (getTotalPecasAdversariaBloqueadas(Arvore.MIN_TURN) - getTotalPecasAdversariaBloqueadas(Arvore.MAX_TURN));
-        }
-        if(w4 !=0){
-            notaAvaliacao += w4 * (getInfo().getPlayerSpots(getTabuleiro()).size() - getInfo().getOpponentSpots(getTabuleiro()).size());
-        }
-        if(w5 != 0){
-            notaAvaliacao += w5 * (getQuantidadeLDuasPecas(1) - getQuantidadeLDuasPecas(2));
-        }
-        if(w6 !=0){
-            notaAvaliacao += w6 * (getQuantidadeLTresPecas(Arvore.MAX_TURN) - getQuantidadeLTresPecas(Arvore.MIN_TURN));
-        }
-        if(w7 !=0){
-            notaAvaliacao += w7 * (getQuantidadeLCincoPecas(Arvore.MAX_TURN) - getQuantidadeLCincoPecas(Arvore.MIN_TURN));
+            notaAvaliacao += w1 * (getTotalLinhasFechadas( MAX_TURN, gi ) - getTotalLinhasFechadas( MIN_TURN, gi ));
         }
         
-//        
-//        if (notaAvaliacao >= 2 || notaAvaliacao <= -2){
-//            System.out.println(notaAvaliacao);
-//        }
+        //Retorna total de peças bloqueadas do jogador de vantagem
+        if(w2 !=0){
+            notaAvaliacao += w2 * (getTotalPecasAdversariaBloqueadas( MIN_TURN, gi ) - getTotalPecasAdversariaBloqueadas( MAX_TURN, gi ));
+        }
+        
+        //Total de peças do jogador de vantagem
+        if(w3 !=0){
+            notaAvaliacao += w3 * (gi.getPlayerSpots(gi.getSpots()).size() - gi.getOpponentSpots(gi.getSpots()).size());
+        }
+        
+        //Quantidade de vezes que o Jogador possui de L de duas peças de vantagem
+        if(w4 != 0){
+            notaAvaliacao += w4 * (getQuantidadeLDuasPecas( MAX_TURN, gi ) - getQuantidadeLDuasPecas( MIN_TURN, gi ));
+        }
+        
+        //Quantidade de vezes que o Jogador possui de L de três peças de vantagem
+        if(w5 !=0){
+            notaAvaliacao += w5 * (getQuantidadeLTresPecas( MAX_TURN, gi ) - getQuantidadeLTresPecas( MIN_TURN, gi ));
+        }
+        
+        //Quantidade de vezes que o Jogador possui de L de cinco peças de vantagem
+        if(w6 !=0){
+            notaAvaliacao += w6 * (getQuantidadeLCincoPecas( MAX_TURN, gi ) - getQuantidadeLCincoPecas( MIN_TURN, gi ));
+        }
         
         
         return notaAvaliacao;
@@ -112,10 +115,10 @@ public final class EvaluationFunction {
     
 
     /*Retorna total de linhas fechadas pelo jogador*/
-    public int getTotalLinhasFechadas(int jogador){
+    public int getTotalLinhasFechadas(int jogador, GameInfo gi){
 
         //Busca todos campos do tabuleiro que estão ocupados por uma peça do Jogador Atual, Jogador ou Oponente;
-        List<String> playerSpots =  jogador == Arvore.MAX_TURN ? getInfo().getPlayerSpots(getTabuleiro()) : getInfo().getOpponentSpots(getTabuleiro());
+        List<String> playerSpots =  jogador == MAX_TURN ? gi.getPlayerSpots(gi.getSpots()) : gi.getOpponentSpots(gi.getSpots());
         
         /*Inicialização da variavel count(contadora) que irá contar, e retornar no final do método quantas
         linhas de três estão formadas no tabuleiro a favor do Jogador*/
@@ -164,13 +167,13 @@ public final class EvaluationFunction {
     
     
     /*Retorna total de peças bloqueadas do jogador*/
-    public int getTotalPecasAdversariaBloqueadas(int jogador){
+    public int getTotalPecasAdversariaBloqueadas(int jogador, GameInfo gi){
 
         //Busca todos campos do tabuleiro que estão ocupados por uma peça do Adversário;
-        List<String> playerSpots = (jogador == Arvore.MAX_TURN) ? getInfo().getOpponentSpots(getTabuleiro()) : getInfo().getPlayerSpots(getTabuleiro());
+        List<String> playerSpots = (jogador == MAX_TURN) ? gi.getOpponentSpots(gi.getSpots()) : gi.getPlayerSpots(gi.getSpots());
         
         //Busca todos campos do tabuleiro que estão livres(sem nenhuma peça tanto do Jogador quanto Oponente)
-        List<String> emptySpots = getInfo().getEmptySpots(getTabuleiro());
+        List<String> emptySpots = gi.getEmptySpots(gi.getSpots());
         
         /*Inicialização da variavel count(contadora) que irá contar, e retornar no final do método quantas
         linhas de três estão formadas no tabuleiro a favor do Jogador*/
@@ -243,12 +246,12 @@ public final class EvaluationFunction {
     }
     
     //Quantidade de vezes que o Jogador atual possui de L de três peças
-    private int getQuantidadeLDuasPecas(int jogador) {
+    private int getQuantidadeLDuasPecas(int jogador, GameInfo gi) {
         //Busca todos campos do tabuleiro que estão ocupados por uma peça do Adversário;
-        List<String> playerSpots = (jogador == 1) ? getInfo().getPlayerSpots(getTabuleiro()) : getInfo().getOpponentSpots(getTabuleiro());
+        List<String> playerSpots = (jogador == MAX_TURN) ? gi.getPlayerSpots(gi.getSpots()) : gi.getOpponentSpots(gi.getSpots());
         
         //Busca todos campos do tabuleiro que estão livres(sem nenhuma peça tanto do Jogador quanto Oponente)
-        List<String> emptySpots = getInfo().getEmptySpots(getTabuleiro());
+        List<String> emptySpots = gi.getEmptySpots(gi.getSpots());
         
         /*Inicialização da variavel count(contadora) que irá contar, e retornar no final do método quantas
         linhas em L de três peças estão formadas no tabuleiro a favor do Jogador Atual*/
@@ -353,12 +356,12 @@ public final class EvaluationFunction {
     
     
     //Quantidade de vezes que o Jogador atual possui de L de três peças
-    private int getQuantidadeLTresPecas(int jogador) {
+    private int getQuantidadeLTresPecas(int jogador, GameInfo gi) {
         //Busca todos campos do tabuleiro que estão ocupados por uma peça do Adversário;
-        List<String> playerSpots = (jogador == Arvore.MAX_TURN) ? getInfo().getOpponentSpots(getTabuleiro()) : getInfo().getPlayerSpots(getTabuleiro());
+        List<String> playerSpots = (jogador == MAX_TURN) ? gi.getOpponentSpots(gi.getSpots()) : gi.getPlayerSpots(gi.getSpots());
         
         //Busca todos campos do tabuleiro que estão livres(sem nenhuma peça tanto do Jogador quanto Oponente)
-        List<String> emptySpots = getInfo().getEmptySpots(getTabuleiro());
+        List<String> emptySpots = gi.getEmptySpots(gi.getSpots());
         
         /*Inicialização da variavel count(contadora) que irá contar, e retornar no final do método quantas
         linhas em L de três peças estão formadas no tabuleiro a favor do Jogador Atual*/
@@ -457,9 +460,9 @@ public final class EvaluationFunction {
     
     
     //Quantidade de vezes que o Jogador atual possui de L de cinco peças
-    private int getQuantidadeLCincoPecas(int jogador) {
+    private int getQuantidadeLCincoPecas(int jogador, GameInfo gi) {
         //Busca todos campos do tabuleiro que estão ocupados por uma peça do Adversário;
-        List<String> playerSpots = (jogador == Arvore.MAX_TURN) ? getInfo().getOpponentSpots(getTabuleiro()) : getInfo().getPlayerSpots(getTabuleiro());
+        List<String> playerSpots = (jogador == MAX_TURN) ? gi.getOpponentSpots(gi.getSpots()) : gi.getPlayerSpots(gi.getSpots());
         
         /*Inicialização da variavel count(contadora) que irá contar, e retornar no final do método quantas
         linhas em L de cindo peças estão formadas no tabuleiro a favor do Jogador Atual*/
@@ -485,18 +488,6 @@ public final class EvaluationFunction {
         
         return count;
     }
-
-
-    
-    
-    
-    
-    
-    
-    
-    
-        
-
     
     private int proximaCasa(int numero){
         if(numero == COLUNA_SETE){
