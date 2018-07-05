@@ -13,7 +13,7 @@ import java.util.List;
  *
  * @author Gustavo
  */
-public class NewAgent implements PlayerAgent {
+public class NewAgent2 implements PlayerAgent {
 
     private static int COLUNA_ZERO = 0;
     private static int COLUNA_SETE = 7;
@@ -29,7 +29,7 @@ public class NewAgent implements PlayerAgent {
             @Override
             public int scoreGameState(MinimaxTree.Node node) {
 
-                return evaluate(100, 1, 0, 0, 0, 0, node, gi);
+                return evaluate(100, 0, 0, 0, 0, 0, node, gi);
                 
             }
         };
@@ -43,7 +43,7 @@ public class NewAgent implements PlayerAgent {
         MinimaxTree arvore = new MinimaxTree(4, MinimaxTree.MOVE_ACTION, gi) {
             @Override
             public int scoreGameState(MinimaxTree.Node node) {
-                return evaluate(100, 1, 0, 0, 0, 0, node, gi);
+                return evaluate(100, 0, 0, 0, 0, 0, node, gi);
             }
         };
         
@@ -57,10 +57,10 @@ public class NewAgent implements PlayerAgent {
             @Override
             public int scoreGameState(MinimaxTree.Node node) {
                 if((node.getOpponentePiecesToPlace() > 0) && (node.getPiecesToPlace() > 0)){
-                    return evaluate(100, 1, 0, 0, 0, 0, node, gi);
+                    return evaluate(100, 0, 0, 0, 0, 0, node, gi);
                 }
                 else{
-                    return evaluate(100, 1, 0, 0, 0, 0, node, gi);
+                    return evaluate(100, 0, 0, 0, 0, 0, node, gi);
                 }
                 
             }

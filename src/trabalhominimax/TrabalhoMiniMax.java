@@ -24,6 +24,7 @@ public class TrabalhoMiniMax {
                 Game moinho = new Game();
                 moinho.setVisible(true);
                 moinho.addAgent(new NewAgent());
+                moinho.addAgent(new NewAgent2());
             }
         });
     }
