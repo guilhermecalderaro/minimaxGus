@@ -25,10 +25,17 @@ public class NewAgent implements PlayerAgent {
 
     @Override
     public String setPiece(GameInfo gi) {
-        MinimaxTree arvore = new MinimaxTree(3, MinimaxTree.SET_ACTION, gi) {
+        MinimaxTree arvore = new MinimaxTree(2, MinimaxTree.SET_ACTION, gi) {
             @Override
             public int scoreGameState(MinimaxTree.Node node) {
-                return evaluate(0, 0, 0, 0, 2, 8, gi);
+                
+                int[][] gameState = {{2,0,0,0,0,0,0,0},
+                             {2,0,0,0,0,1,0,0},
+                             {1,0,0,0,1,0,0,0}
+                            };
+                
+                teste(gi, gameState);
+                return evaluate(0, 0, 0, 2, 0, 0, node, gi);
             }
         };
         
@@ -41,19 +48,20 @@ public class NewAgent implements PlayerAgent {
         MinimaxTree arvore = new MinimaxTree(4, MinimaxTree.MOVE_ACTION, gi) {
             @Override
             public int scoreGameState(MinimaxTree.Node node) {
-                return evaluate(0, 0, 0, 0, 2, 8, gi);
+                return evaluate(0, 0, 0, 0, 2, 8, node, gi);
             }
         };
         
         return arvore.executeMinimax();
     }
-
+    
+    
     @Override
     public String removePiece(GameInfo gi) {
         MinimaxTree arvore = new MinimaxTree(4, MinimaxTree.REMOVE_ACTION, gi) {
             @Override
             public int scoreGameState(MinimaxTree.Node node) {
-                return evaluate(0, 0, 0, 0, 2, 8, gi);
+                return evaluate(0, 0, 0, 0, 2, 8, node, gi);
             }
         };
         
@@ -66,38 +74,38 @@ public class NewAgent implements PlayerAgent {
     
     
     
-    private int evaluate(int w1, int w2, int w3, int w4, int w5, int w6, GameInfo gi) {        
+    private int evaluate(int w1, int w2, int w3, int w4, int w5, int w6, MinimaxTree.Node node, GameInfo gi) {        
         
         int notaAvaliacao = 0;
         
         //Retorna total de linhas fechadas pelo jogador de vantagem
-        if(w1 !=0){
-            notaAvaliacao += w1 * (getTotalLinhasFechadas( MAX_TURN, gi ) - getTotalLinhasFechadas( MIN_TURN, gi ));
+        if(w1 != 0){
+            notaAvaliacao += w1 * (getTotalLinhasFechadas( MAX_TURN, gi, node.getGameState() ) - getTotalLinhasFechadas( MIN_TURN, gi, node.getGameState() ));
         }
         
         //Retorna total de peças bloqueadas do jogador de vantagem
-        if(w2 !=0){
-            notaAvaliacao += w2 * (getTotalPecasAdversariaBloqueadas( MIN_TURN, gi ) - getTotalPecasAdversariaBloqueadas( MAX_TURN, gi ));
+        if(w2 != 0){
+            notaAvaliacao += w2 * (getTotalPecasAdversariaBloqueadas( MIN_TURN, gi, node.getGameState() ) - getTotalPecasAdversariaBloqueadas( MAX_TURN, gi, node.getGameState() ));
         }
         
         //Total de peças do jogador de vantagem
-        if(w3 !=0){
-            notaAvaliacao += w3 * (gi.getPlayerSpots(gi.getSpots()).size() - gi.getOpponentSpots(gi.getSpots()).size());
+        if(w3 != 0){
+            notaAvaliacao += w3 * (gi.getPlayerSpots(node.getGameState()).size() - gi.getOpponentSpots(node.getGameState()).size());
         }
         
         //Quantidade de vezes que o Jogador possui de L de duas peças de vantagem
         if(w4 != 0){
-            notaAvaliacao += w4 * (getQuantidadeLDuasPecas( MAX_TURN, gi ) - getQuantidadeLDuasPecas( MIN_TURN, gi ));
+            notaAvaliacao += w4 * (getQuantidadeLDuasPecas( MAX_TURN, gi, node.getGameState() ) - getQuantidadeLDuasPecas( MIN_TURN, gi, node.getGameState() ));
         }
         
         //Quantidade de vezes que o Jogador possui de L de três peças de vantagem
         if(w5 !=0){
-            notaAvaliacao += w5 * (getQuantidadeLTresPecas( MAX_TURN, gi ) - getQuantidadeLTresPecas( MIN_TURN, gi ));
+            notaAvaliacao += w5 * (getQuantidadeLTresPecas( MAX_TURN, gi, node.getGameState() ) - getQuantidadeLTresPecas( MIN_TURN, gi, node.getGameState() ));
         }
         
         //Quantidade de vezes que o Jogador possui de L de cinco peças de vantagem
         if(w6 !=0){
-            notaAvaliacao += w6 * (getQuantidadeLCincoPecas( MAX_TURN, gi ) - getQuantidadeLCincoPecas( MIN_TURN, gi ));
+            notaAvaliacao += w6 * (getQuantidadeLCincoPecas( MAX_TURN, gi, node.getGameState() ) - getQuantidadeLCincoPecas( MIN_TURN, gi, node.getGameState() ));
         }
         
         
@@ -115,10 +123,10 @@ public class NewAgent implements PlayerAgent {
     
 
     /*Retorna total de linhas fechadas pelo jogador*/
-    public int getTotalLinhasFechadas(int jogador, GameInfo gi){
+    public int getTotalLinhasFechadas(int jogador, GameInfo gi, int[][] gs){
 
         //Busca todos campos do tabuleiro que estão ocupados por uma peça do Jogador Atual, Jogador ou Oponente;
-        List<String> playerSpots =  jogador == MAX_TURN ? gi.getPlayerSpots(gi.getSpots()) : gi.getOpponentSpots(gi.getSpots());
+        List<String> playerSpots =  jogador == MAX_TURN ? gi.getPlayerSpots(gs) : gi.getOpponentSpots(gs);
         
         /*Inicialização da variavel count(contadora) que irá contar, e retornar no final do método quantas
         linhas de três estão formadas no tabuleiro a favor do Jogador*/
@@ -167,13 +175,13 @@ public class NewAgent implements PlayerAgent {
     
     
     /*Retorna total de peças bloqueadas do jogador*/
-    public int getTotalPecasAdversariaBloqueadas(int jogador, GameInfo gi){
+    public int getTotalPecasAdversariaBloqueadas(int jogador, GameInfo gi, int[][] gs){
 
         //Busca todos campos do tabuleiro que estão ocupados por uma peça do Adversário;
-        List<String> playerSpots = (jogador == MAX_TURN) ? gi.getOpponentSpots(gi.getSpots()) : gi.getPlayerSpots(gi.getSpots());
+        List<String> playerSpots = (jogador == MAX_TURN) ? gi.getOpponentSpots(gs) : gi.getPlayerSpots(gs);
         
         //Busca todos campos do tabuleiro que estão livres(sem nenhuma peça tanto do Jogador quanto Oponente)
-        List<String> emptySpots = gi.getEmptySpots(gi.getSpots());
+        List<String> emptySpots = gi.getEmptySpots(gs);
         
         /*Inicialização da variavel count(contadora) que irá contar, e retornar no final do método quantas
         linhas de três estão formadas no tabuleiro a favor do Jogador*/
@@ -246,12 +254,12 @@ public class NewAgent implements PlayerAgent {
     }
     
     //Quantidade de vezes que o Jogador atual possui de L de três peças
-    private int getQuantidadeLDuasPecas(int jogador, GameInfo gi) {
+    private int getQuantidadeLDuasPecas(int jogador, GameInfo gi, int[][] gs) {
         //Busca todos campos do tabuleiro que estão ocupados por uma peça do Adversário;
-        List<String> playerSpots = (jogador == MAX_TURN) ? gi.getPlayerSpots(gi.getSpots()) : gi.getOpponentSpots(gi.getSpots());
+        List<String> playerSpots = (jogador == MAX_TURN) ? gi.getPlayerSpots(gs) : gi.getOpponentSpots(gs);
         
         //Busca todos campos do tabuleiro que estão livres(sem nenhuma peça tanto do Jogador quanto Oponente)
-        List<String> emptySpots = gi.getEmptySpots(gi.getSpots());
+        List<String> emptySpots = gi.getEmptySpots(gs);
         
         /*Inicialização da variavel count(contadora) que irá contar, e retornar no final do método quantas
         linhas em L de três peças estão formadas no tabuleiro a favor do Jogador Atual*/
@@ -269,81 +277,92 @@ public class NewAgent implements PlayerAgent {
             /*Verificação se a coluna é um numero par, todos numeros pares ficam em cantos, sendo assim não podem se
             movimentar no sentido coluna(do centro do tabuleiro para extremidade)*/
             if(coluna%2==0){
-                if(playerSpots.contains(linha + "," + proximaCasa(proximaCasa(proximaCasa(proximaCasa(coluna)))))){
-                    if((emptySpots.contains(linha + "," + proximaCasa(coluna))) && (emptySpots.contains(linha + "," + proximaCasa(proximaCasa(coluna)))) && (emptySpots.contains(linha + "," + proximaCasa(proximaCasa(proximaCasa(coluna)))))){
+                if(playerSpots.contains(linha + "," + proximaCasa(proximaCasa(proximaCasa(proximaCasa(coluna))))) &&
+                    ((emptySpots.contains(linha + "," + proximaCasa(coluna))) && (emptySpots.contains(linha + "," + proximaCasa(proximaCasa(coluna)))) && (emptySpots.contains(linha + "," + proximaCasa(proximaCasa(proximaCasa(coluna))))))){
                         count++;
-                    }
                 }
                 
             }
             else if(coluna%2==1){
                 switch(linha){
                 case 0:
-                    if((emptySpots.contains(proximaCasa(linha) + "," + coluna)) && (emptySpots.contains(proximaCasa(proximaCasa(linha)) + "," + coluna)) && (emptySpots.contains(proximaCasa(linha) + "," + casaAnterior(coluna)))){
-                        if(playerSpots.contains(proximaCasa(linha) + "," + proximaCasa(coluna))){
-                            count++;
-                        }
+                    if((emptySpots.contains(proximaCasa(linha) + "," + coluna)) && (emptySpots.contains(proximaCasa(proximaCasa(linha)) + "," + coluna)) && (emptySpots.contains(proximaCasa(linha) + "," + casaAnterior(coluna))) &&
+                       (playerSpots.contains(proximaCasa(linha) + "," + proximaCasa(coluna)))){
+                            
+                        count++;
+                        
                     }
-                    else if((emptySpots.contains(proximaCasa(linha) + "," + coluna)) && (emptySpots.contains(proximaCasa(proximaCasa(linha)) + "," + coluna)) && (emptySpots.contains(proximaCasa(proximaCasa(linha)) + "," + casaAnterior(coluna)))){
-                        if(playerSpots.contains(proximaCasa(proximaCasa(linha)) + "," + proximaCasa(coluna))){
-                            count++;
-                        }
+                    else if((emptySpots.contains(proximaCasa(linha) + "," + coluna)) && (emptySpots.contains(proximaCasa(proximaCasa(linha)) + "," + coluna)) && (emptySpots.contains(proximaCasa(proximaCasa(linha)) + "," + casaAnterior(coluna))) && 
+                            (playerSpots.contains(proximaCasa(proximaCasa(linha)) + "," + proximaCasa(coluna)))){
+                        
+                        count++;
+                    
                     }
-                    else if((emptySpots.contains(proximaCasa(linha) + "," + coluna)) && (emptySpots.contains(proximaCasa(proximaCasa(linha)) + "," + coluna)) && (emptySpots.contains(proximaCasa(linha) + "," + proximaCasa(coluna)))){
-                        if(playerSpots.contains(proximaCasa(linha) + "," + casaAnterior(coluna))){
+                    else if((emptySpots.contains(proximaCasa(linha) + "," + coluna)) && (emptySpots.contains(proximaCasa(proximaCasa(linha)) + "," + coluna)) && (emptySpots.contains(proximaCasa(linha) + "," + proximaCasa(coluna))) &&
+                            (playerSpots.contains(proximaCasa(linha) + "," + casaAnterior(coluna)))){
+                        
                             count++;
-                        }
+                            
                     }
-                    else if((emptySpots.contains(proximaCasa(linha) + "," + coluna)) && (emptySpots.contains(proximaCasa(proximaCasa(linha)) + "," + coluna)) && (emptySpots.contains(proximaCasa(proximaCasa(linha)) + "," + proximaCasa(coluna)))){
-                        if(playerSpots.contains(proximaCasa(proximaCasa(linha)) + "," + casaAnterior(coluna))){
+                    else if((emptySpots.contains(proximaCasa(linha) + "," + coluna)) && (emptySpots.contains(proximaCasa(proximaCasa(linha)) + "," + coluna)) && (emptySpots.contains(proximaCasa(proximaCasa(linha)) + "," + proximaCasa(coluna))) &&
+                            (playerSpots.contains(proximaCasa(proximaCasa(linha)) + "," + casaAnterior(coluna)))){
+                        
                             count++;
-                        }
+                            
                     }
                     break;    
                     
                 case 1:
-                    if((emptySpots.contains(casaAnterior(linha) + "," + coluna)) && (emptySpots.contains(proximaCasa(linha) + "," + coluna)) && (emptySpots.contains(casaAnterior(linha) + "," + proximaCasa(coluna)))){
-                        if(playerSpots.contains(casaAnterior(linha) + "," + casaAnterior(coluna))){
+                    if((emptySpots.contains(casaAnterior(linha) + "," + coluna)) && (emptySpots.contains(proximaCasa(linha) + "," + coluna)) && (emptySpots.contains(casaAnterior(linha) + "," + proximaCasa(coluna))) &&
+                        (playerSpots.contains(casaAnterior(linha) + "," + casaAnterior(coluna)))){
+                        
                             count++;
-                        }
+
                     }
-                    else if((emptySpots.contains(casaAnterior(linha) + "," + coluna)) && (emptySpots.contains(proximaCasa(linha) + "," + coluna)) && (emptySpots.contains(casaAnterior(linha) + "," + casaAnterior(coluna)))){
-                        if(playerSpots.contains(casaAnterior(linha) + "," + proximaCasa(coluna))){
+                    else if((emptySpots.contains(casaAnterior(linha) + "," + coluna)) && (emptySpots.contains(proximaCasa(linha) + "," + coluna)) && (emptySpots.contains(casaAnterior(linha) + "," + casaAnterior(coluna))) &&
+                            (playerSpots.contains(casaAnterior(linha) + "," + proximaCasa(coluna)))){
+                        
                             count++;
-                        }
+                            
                     }
-                    else if((emptySpots.contains(casaAnterior(linha) + "," + coluna)) && (emptySpots.contains(proximaCasa(linha) + "," + coluna)) && (emptySpots.contains(proximaCasa(linha) + "," + proximaCasa(coluna)))){
-                        if(playerSpots.contains(proximaCasa(linha) + "," + casaAnterior(coluna))){
-                            count++;
-                        }
+                    else if((emptySpots.contains(casaAnterior(linha) + "," + coluna)) && (emptySpots.contains(proximaCasa(linha) + "," + coluna)) && (emptySpots.contains(proximaCasa(linha) + "," + proximaCasa(coluna))) &&
+                            (playerSpots.contains(proximaCasa(linha) + "," + casaAnterior(coluna)))){
+                            
+                        count++;
+
                     }
-                    else if((emptySpots.contains(casaAnterior(linha) + "," + coluna)) && (emptySpots.contains(proximaCasa(linha) + "," + coluna)) && (emptySpots.contains(proximaCasa(linha) + "," + casaAnterior(coluna)))){
-                        if(playerSpots.contains(proximaCasa(linha) + "," + proximaCasa(coluna))){
-                            count++;
-                        }
+                    else if((emptySpots.contains(casaAnterior(linha) + "," + coluna)) && (emptySpots.contains(proximaCasa(linha) + "," + coluna)) && (emptySpots.contains(proximaCasa(linha) + "," + casaAnterior(coluna))) &&
+                            (playerSpots.contains(proximaCasa(linha) + "," + proximaCasa(coluna)))){
+                            
+                        count++;
+                        
                     }
                     break;
                           
                 case 2:
-                    if((emptySpots.contains(casaAnterior(linha) + "," + coluna)) && (emptySpots.contains(casaAnterior(casaAnterior(linha)) + "," + coluna)) && (emptySpots.contains(casaAnterior(linha) + "," + casaAnterior(coluna)))){
-                        if(playerSpots.contains(casaAnterior(linha) + "," + proximaCasa(coluna))){
-                            count++;
-                        }
+                    if((emptySpots.contains(casaAnterior(linha) + "," + coluna)) && (emptySpots.contains(casaAnterior(casaAnterior(linha)) + "," + coluna)) && (emptySpots.contains(casaAnterior(linha) + "," + casaAnterior(coluna))) &&
+                        (playerSpots.contains(casaAnterior(linha) + "," + proximaCasa(coluna)))){
+                            
+                        count++;
+                        
                     }
-                    else if((emptySpots.contains(casaAnterior(linha) + "," + coluna)) && (emptySpots.contains(casaAnterior(casaAnterior(linha)) + "," + coluna)) && (emptySpots.contains(casaAnterior(casaAnterior(linha)) + "," + casaAnterior(coluna)))){
-                        if(playerSpots.contains(casaAnterior(casaAnterior(linha)) + "," + proximaCasa(coluna))){
-                            count++;
-                        }
+                    else if((emptySpots.contains(casaAnterior(linha) + "," + coluna)) && (emptySpots.contains(casaAnterior(casaAnterior(linha)) + "," + coluna)) && (emptySpots.contains(casaAnterior(casaAnterior(linha)) + "," + casaAnterior(coluna))) &&
+                            (playerSpots.contains(casaAnterior(casaAnterior(linha)) + "," + proximaCasa(coluna)))){
+                            
+                        count++;
+                            
                     }
-                    else if((emptySpots.contains(casaAnterior(linha) + "," + coluna)) && (emptySpots.contains(casaAnterior(casaAnterior(linha)) + "," + coluna)) && (emptySpots.contains(casaAnterior(linha) + "," + proximaCasa(coluna)))){
-                        if(playerSpots.contains(casaAnterior(linha) + "," + casaAnterior(coluna))){
-                            count++;
-                        }
+                    else if((emptySpots.contains(casaAnterior(linha) + "," + coluna)) && (emptySpots.contains(casaAnterior(casaAnterior(linha)) + "," + coluna)) && (emptySpots.contains(casaAnterior(linha) + "," + proximaCasa(coluna))) &&
+                        (playerSpots.contains(casaAnterior(linha) + "," + casaAnterior(coluna)))){
+                           
+                        count++;
+                    
                     }
-                    else if((emptySpots.contains(casaAnterior(linha) + "," + coluna)) && (emptySpots.contains(casaAnterior(casaAnterior(linha)) + "," + coluna)) && (emptySpots.contains(casaAnterior(casaAnterior(linha)) + "," + proximaCasa(coluna)))){
-                        if(playerSpots.contains(casaAnterior(casaAnterior(linha)) + "," + casaAnterior(coluna))){
-                            count++;
-                        }
+                    else if((emptySpots.contains(casaAnterior(linha) + "," + coluna)) && (emptySpots.contains(casaAnterior(casaAnterior(linha)) + "," + coluna)) && (emptySpots.contains(casaAnterior(casaAnterior(linha)) + "," + proximaCasa(coluna))) &&
+                        (playerSpots.contains(casaAnterior(casaAnterior(linha)) + "," + casaAnterior(coluna)))){
+                            
+                        count++;
+
                     }
                     break;
                 }
@@ -356,12 +375,12 @@ public class NewAgent implements PlayerAgent {
     
     
     //Quantidade de vezes que o Jogador atual possui de L de três peças
-    private int getQuantidadeLTresPecas(int jogador, GameInfo gi) {
+    private int getQuantidadeLTresPecas(int jogador, GameInfo gi, int[][] gs) {
         //Busca todos campos do tabuleiro que estão ocupados por uma peça do Adversário;
-        List<String> playerSpots = (jogador == MAX_TURN) ? gi.getOpponentSpots(gi.getSpots()) : gi.getPlayerSpots(gi.getSpots());
+        List<String> playerSpots = (jogador == MAX_TURN) ? gi.getOpponentSpots(gs) : gi.getPlayerSpots(gs);
         
         //Busca todos campos do tabuleiro que estão livres(sem nenhuma peça tanto do Jogador quanto Oponente)
-        List<String> emptySpots = gi.getEmptySpots(gi.getSpots());
+        List<String> emptySpots = gi.getEmptySpots(gs);
         
         /*Inicialização da variavel count(contadora) que irá contar, e retornar no final do método quantas
         linhas em L de três peças estão formadas no tabuleiro a favor do Jogador Atual*/
@@ -378,77 +397,76 @@ public class NewAgent implements PlayerAgent {
             /*Verificação se a coluna é um numero par, todos numeros pares ficam em cantos, sendo assim não podem se
             movimentar no sentido coluna(do centro do tabuleiro para extremidade)*/
             if(coluna % 2 == 0){
-                if((emptySpots.contains(linha + "," + proximaCasa(coluna))) && (emptySpots.contains(linha + "," + casaAnterior(coluna)))){
-                    if((playerSpots.contains(linha + "," + proximaCasa(proximaCasa(coluna)))) && (playerSpots.contains(linha + "," + casaAnterior(casaAnterior(coluna))))){
+                if((emptySpots.contains(linha + "," + proximaCasa(coluna))) && (emptySpots.contains(linha + "," + casaAnterior(coluna))) &&
+                    ((playerSpots.contains(linha + "," + proximaCasa(proximaCasa(coluna)))) && (playerSpots.contains(linha + "," + casaAnterior(casaAnterior(coluna)))))){
                         count ++;
-                    }
                 }
             }
             else if(coluna % 2 != 0){
                 switch(linha){
                 case 0:
-                    if((playerSpots.contains(linha + "," + proximaCasa(coluna))) && (playerSpots.contains(proximaCasa(linha) + "," + coluna))){
-                        if((emptySpots.contains(linha + "," + casaAnterior(coluna))) && (emptySpots.contains(proximaCasa(proximaCasa(linha)) + "," + coluna))){
+                    if((playerSpots.contains(linha + "," + proximaCasa(coluna))) && (playerSpots.contains(proximaCasa(linha) + "," + coluna)) &&
+                        ((emptySpots.contains(linha + "," + casaAnterior(coluna))) && (emptySpots.contains(proximaCasa(proximaCasa(linha)) + "," + coluna)))){
                             count++;
-                        }
+                       
                     }
-                    else if((playerSpots.contains(linha + "," + proximaCasa(coluna))) && (playerSpots.contains(proximaCasa(proximaCasa(linha)) + "," + coluna))){
-                        if((emptySpots.contains(linha + "," + casaAnterior(coluna))) && (emptySpots.contains(proximaCasa(linha) + "," + coluna))){
+                    else if((playerSpots.contains(linha + "," + proximaCasa(coluna))) && (playerSpots.contains(proximaCasa(proximaCasa(linha)) + "," + coluna)) &&
+                        ((emptySpots.contains(linha + "," + casaAnterior(coluna))) && (emptySpots.contains(proximaCasa(linha) + "," + coluna)))){
                             count++;
-                        }
+                        
                     }
-                    else if((playerSpots.contains(linha + "," + casaAnterior(coluna))) && (playerSpots.contains(proximaCasa(linha) + "," + coluna))){
-                        if((emptySpots.contains(linha + "," + proximaCasa(coluna))) && (emptySpots.contains(proximaCasa(proximaCasa(linha)) + "," + coluna))){
+                    else if((playerSpots.contains(linha + "," + casaAnterior(coluna))) && (playerSpots.contains(proximaCasa(linha) + "," + coluna)) &&
+                        ((emptySpots.contains(linha + "," + proximaCasa(coluna))) && (emptySpots.contains(proximaCasa(proximaCasa(linha)) + "," + coluna)))){
                             count++;
-                        }
+                        
                     }
-                    else if((playerSpots.contains(linha + "," + casaAnterior(coluna))) && (playerSpots.contains(proximaCasa(proximaCasa(linha)) + "," + coluna))){
-                        if((emptySpots.contains(linha + "," + proximaCasa(coluna))) && (emptySpots.contains(proximaCasa(linha) + "," + coluna))){
+                    else if((playerSpots.contains(linha + "," + casaAnterior(coluna))) && (playerSpots.contains(proximaCasa(proximaCasa(linha)) + "," + coluna)) &&
+                        ((emptySpots.contains(linha + "," + proximaCasa(coluna))) && (emptySpots.contains(proximaCasa(linha) + "," + coluna)))){
                             count++;
-                        }
+                        
                     }
                     break;
                 case 1:
-                    if((playerSpots.contains(linha + "," + proximaCasa(coluna))) && (playerSpots.contains(casaAnterior(linha) + "," + coluna))){
-                        if((emptySpots.contains(linha + "," + casaAnterior(coluna))) && (emptySpots.contains(proximaCasa(linha) + "," + coluna))){
+                    if((playerSpots.contains(linha + "," + proximaCasa(coluna))) && (playerSpots.contains(casaAnterior(linha) + "," + coluna)) &&
+                        ((emptySpots.contains(linha + "," + casaAnterior(coluna))) && (emptySpots.contains(proximaCasa(linha) + "," + coluna)))){
                             count++;
-                        }
+                        
                     }
-                    else if((playerSpots.contains(linha + "," + proximaCasa(coluna))) && (playerSpots.contains(proximaCasa(linha) + "," + coluna))){
-                        if((emptySpots.contains(linha + "," + casaAnterior(coluna))) && (emptySpots.contains(casaAnterior(linha) + "," + coluna))){
+                    else if((playerSpots.contains(linha + "," + proximaCasa(coluna))) && (playerSpots.contains(proximaCasa(linha) + "," + coluna)) &&
+                        ((emptySpots.contains(linha + "," + casaAnterior(coluna))) && (emptySpots.contains(casaAnterior(linha) + "," + coluna)))){
                             count++;
-                        }
+                        
                     }
-                    else if((playerSpots.contains(linha + "," + casaAnterior(coluna))) && (playerSpots.contains(casaAnterior(linha) + "," + coluna))){
-                        if((emptySpots.contains(linha + "," + proximaCasa(coluna))) && (emptySpots.contains(proximaCasa(linha) + "," + coluna))){
+                    else if((playerSpots.contains(linha + "," + casaAnterior(coluna))) && (playerSpots.contains(casaAnterior(linha) + "," + coluna)) &&
+                        ((emptySpots.contains(linha + "," + proximaCasa(coluna))) && (emptySpots.contains(proximaCasa(linha) + "," + coluna)))){
                             count++;
-                        }
+                        
                     }
-                    else if((playerSpots.contains(linha + "," + casaAnterior(coluna))) && (playerSpots.contains(proximaCasa(linha) + "," + coluna))){
-                        if((emptySpots.contains(linha + "," + proximaCasa(coluna))) && (emptySpots.contains(casaAnterior(linha) + "," + coluna))){
+                    else if((playerSpots.contains(linha + "," + casaAnterior(coluna))) && (playerSpots.contains(proximaCasa(linha) + "," + coluna)) &&
+                        ((emptySpots.contains(linha + "," + proximaCasa(coluna))) && (emptySpots.contains(casaAnterior(linha) + "," + coluna)))){
                             count++;
-                        }
+                        
                     }
                 case 2:
-                    if((playerSpots.contains(linha + "," + proximaCasa(coluna))) && (playerSpots.contains(casaAnterior(linha) + "," + coluna))){
-                        if((emptySpots.contains(linha + "," + casaAnterior(coluna))) && (emptySpots.contains(casaAnterior(casaAnterior(linha)) + "," + coluna))){
+                    if((playerSpots.contains(linha + "," + proximaCasa(coluna))) && (playerSpots.contains(casaAnterior(linha) + "," + coluna)) &&
+                        ((emptySpots.contains(linha + "," + casaAnterior(coluna))) && (emptySpots.contains(casaAnterior(casaAnterior(linha)) + "," + coluna)))){
                             count++;
-                        }
+                        
                     }
-                    else if((playerSpots.contains(linha + "," + proximaCasa(coluna))) && (playerSpots.contains(casaAnterior(casaAnterior(linha)) + "," + coluna))){
-                        if((emptySpots.contains(linha + "," + casaAnterior(coluna))) && (emptySpots.contains(casaAnterior(linha) + "," + coluna))){
+                    else if((playerSpots.contains(linha + "," + proximaCasa(coluna))) && (playerSpots.contains(casaAnterior(casaAnterior(linha)) + "," + coluna)) &&
+                        ((emptySpots.contains(linha + "," + casaAnterior(coluna))) && (emptySpots.contains(casaAnterior(linha) + "," + coluna)))){
                             count++;
-                        }
+                        
                     }
-                    else if((playerSpots.contains(linha + "," + casaAnterior(coluna))) && (playerSpots.contains(casaAnterior(linha) + "," + coluna))){
-                        if((emptySpots.contains(linha + "," + proximaCasa(coluna))) && (emptySpots.contains(casaAnterior(casaAnterior(linha)) + "," + coluna))){
+                    else if((playerSpots.contains(linha + "," + casaAnterior(coluna))) && (playerSpots.contains(casaAnterior(linha) + "," + coluna)) &&
+                        ((emptySpots.contains(linha + "," + proximaCasa(coluna))) && (emptySpots.contains(casaAnterior(casaAnterior(linha)) + "," + coluna)))){
                             count++;
-                        }
+                        
                     }
-                    else if((playerSpots.contains(linha + "," + casaAnterior(coluna))) && (playerSpots.contains(casaAnterior(casaAnterior(linha)) + "," + coluna))){
-                        if((emptySpots.contains(linha + "," + proximaCasa(coluna))) && (emptySpots.contains(casaAnterior(linha) + "," + coluna))){
+                    else if((playerSpots.contains(linha + "," + casaAnterior(coluna))) && (playerSpots.contains(casaAnterior(casaAnterior(linha)) + "," + coluna)) &&
+                        ((emptySpots.contains(linha + "," + proximaCasa(coluna))) && (emptySpots.contains(casaAnterior(linha) + "," + coluna)))){
                             count++;
-                        }
+                        
                     }
                 }
             }
@@ -460,9 +478,9 @@ public class NewAgent implements PlayerAgent {
     
     
     //Quantidade de vezes que o Jogador atual possui de L de cinco peças
-    private int getQuantidadeLCincoPecas(int jogador, GameInfo gi) {
+    private int getQuantidadeLCincoPecas(int jogador, GameInfo gi, int[][] gs) {
         //Busca todos campos do tabuleiro que estão ocupados por uma peça do Adversário;
-        List<String> playerSpots = (jogador == MAX_TURN) ? gi.getOpponentSpots(gi.getSpots()) : gi.getPlayerSpots(gi.getSpots());
+        List<String> playerSpots = (jogador == MAX_TURN) ? gi.getOpponentSpots(gs) : gi.getPlayerSpots(gs);
         
         /*Inicialização da variavel count(contadora) que irá contar, e retornar no final do método quantas
         linhas em L de cindo peças estão formadas no tabuleiro a favor do Jogador Atual*/
@@ -511,4 +529,14 @@ public class NewAgent implements PlayerAgent {
         return numero;
     }
     
+    
+    public void teste(GameInfo gi, int[][] gameState){
+        
+        
+        
+        int jogador = getQuantidadeLDuasPecas(MAX_TURN, gi, gameState);
+        int oponente = getQuantidadeLDuasPecas(MIN_TURN, gi, gameState);
+        
+        System.out.println("Resultado: " + jogador + " - " + oponente);
+    }
 }

@@ -12,7 +12,7 @@ import java.awt.EventQueue;
  *
  * @author Gustavo
  */
-public class JavaApplication3 {
+public class TrabalhoMiniMax {
 
     /**
      * @param args the command line arguments
